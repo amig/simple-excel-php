@@ -35,6 +35,14 @@ class XMLWriter extends BaseWriter implements IWriter
     private $doc_prop;
 
     /**
+     * Holds sheet data
+     * 
+     * @access  protected
+     * @var     array
+     */
+    protected $sheet_data = [];
+
+    /**
      * @return  void
      */
     public function __construct(){
@@ -105,12 +113,27 @@ class XMLWriter extends BaseWriter implements IWriter
         }
  
         $content .= '
- </DocumentProperties>
+ </DocumentProperties>';
+
+        if (!empty($this->sheet_data)) {
+          foreach($this->sheet_data as $sheet => $tabl_data) {
+            $content .= '
+ <Worksheet ss:Name="' . $sheet . '">
+  <Table>' . $tabl_data . '</Table>
+ </Worksheet>';
+          }
+        }
+        else {
+          $content .= '
  <Worksheet ss:Name="Sheet1">
-  <Table>'.$this->tabl_data.'
+  <Table>' . $this->tabl_data . '
   </Table>
- </Worksheet>
+ </Worksheet>';
+        }
+
+        $content .= '
 </Workbook>';
+
         return $content;
     }
 
@@ -118,9 +141,10 @@ class XMLWriter extends BaseWriter implements IWriter
     * Set XML data
     * 
     * @param    array   $values An array contains ordered value of arrays for all fields
+    * @param    string  $sheetName The name of the sheet data is set to
     * @return   void
     */
-    public function setData($values){
+    public function setData($values, $sheetName = null){
         if(!is_array($values)){
             $values = array($values);
         }
@@ -129,6 +153,10 @@ class XMLWriter extends BaseWriter implements IWriter
         // append values as rows
         foreach ($values as $value) {
             $this->addRow($value);  
+        }
+
+        if (!empty($sheetName)) {
+          $this->sheet_data[$sheetName] = $this->tabl_data;
         }
     }
 
